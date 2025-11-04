@@ -66,18 +66,110 @@ node packages/playwright/cli.js run-mcp-server --config playwright-mcp-fast.json
 
 ### 🚀 Quick Start with Modifications
 
+#### Local Development Setup
+
 ```bash
+# Clone your fork
+git clone https://github.com/weidwonder/playwright.git
+cd playwright
+
 # Install dependencies (includes playwright-dompath)
 npm ci
 
 # Build the project
 npm run build
 
+# Install browsers
+npx playwright install
+
 # Run MCP server with fast configuration
 node packages/playwright/cli.js run-mcp-server --config playwright-mcp-fast.json
 
 # Run tests
 npm run ctest-mcp -- tests/mcp/selector.spec.ts
+```
+
+#### Configuration for MCP Clients
+
+##### Claude Desktop
+
+Edit your Claude Desktop config file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "playwright-dev": {
+      "command": "node",
+      "args": [
+        "<path-to-playwright-repo>/packages/playwright/cli.js",
+        "run-mcp-server",
+        "--config",
+        "<path-to-playwright-repo>/playwright-mcp-fast.json"
+      ],
+      "env": {
+        "NODE_PATH": "<path-to-playwright-repo>/node_modules"
+      }
+    }
+  }
+}
+```
+
+Replace `<path-to-playwright-repo>` with your actual path, for example:
+- macOS/Linux: `/Users/username/projects/playwright` or `~/projects/playwright`
+- Windows: `C:\Users\username\projects\playwright`
+
+##### Claude Code (CLI)
+
+Add the MCP server using the Claude Code CLI:
+
+```bash
+# Navigate to your playwright repository
+cd /path/to/playwright
+
+# Add MCP server with fast configuration
+claude-code mcp add playwright-dev \
+  --command "node" \
+  --args "$(pwd)/packages/playwright/cli.js" \
+  --args "run-mcp-server" \
+  --args "--config" \
+  --args "$(pwd)/playwright-mcp-fast.json" \
+  --env "NODE_PATH=$(pwd)/node_modules"
+
+# Or for debug configuration (with visible browser)
+claude-code mcp add playwright-debug \
+  --command "node" \
+  --args "$(pwd)/packages/playwright/cli.js" \
+  --args "run-mcp-server" \
+  --args "--config" \
+  --args "$(pwd)/playwright-mcp-debug.json" \
+  --env "NODE_PATH=$(pwd)/node_modules"
+```
+
+##### Other MCP Clients
+
+For VS Code, Cline, Cursor, or other MCP clients, use similar configuration with:
+- **Command**: `node`
+- **Args**:
+  - `<path-to-repo>/packages/playwright/cli.js`
+  - `run-mcp-server`
+  - `--config`
+  - `<path-to-repo>/playwright-mcp-fast.json`
+- **Environment**: `NODE_PATH=<path-to-repo>/node_modules`
+
+#### Switching Between Configurations
+
+Use `playwright-mcp-fast.json` for production (faster):
+```bash
+# ~60-70% faster, headless mode
+node packages/playwright/cli.js run-mcp-server --config playwright-mcp-fast.json
+```
+
+Use `playwright-mcp-debug.json` for debugging (visible browser):
+```bash
+# Slower but you can see what's happening
+node packages/playwright/cli.js run-mcp-server --config playwright-mcp-debug.json
 ```
 
 ### 🔗 Upstream
