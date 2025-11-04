@@ -184,22 +184,14 @@ Add the MCP server using the Claude Code CLI:
 cd /path/to/playwright
 
 # Add MCP server with fast configuration
-claude-code mcp add playwright-dev \
-  --command "node" \
-  --args "$(pwd)/packages/playwright/cli.js" \
-  --args "run-mcp-server" \
-  --args "--config" \
-  --args "$(pwd)/playwright-mcp-fast.json" \
-  --env "NODE_PATH=$(pwd)/node_modules"
+claude mcp add --transport stdio playwright-dev \
+  --env "NODE_PATH=$(pwd)/node_modules" \
+  -- node "$(pwd)/packages/playwright/cli.js" run-mcp-server --config "$(pwd)/playwright-mcp-fast.json"
 
 # Or for debug configuration (with visible browser)
-claude-code mcp add playwright-debug \
-  --command "node" \
-  --args "$(pwd)/packages/playwright/cli.js" \
-  --args "run-mcp-server" \
-  --args "--config" \
-  --args "$(pwd)/playwright-mcp-debug.json" \
-  --env "NODE_PATH=$(pwd)/node_modules"
+claude mcp add --transport stdio playwright-debug \
+  --env "NODE_PATH=$(pwd)/node_modules" \
+  -- node "$(pwd)/packages/playwright/cli.js" run-mcp-server --config "$(pwd)/playwright-mcp-debug.json"
 ```
 
 ##### Other MCP Clients
