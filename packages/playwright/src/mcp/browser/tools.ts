@@ -28,6 +28,7 @@ import network from './tools/network';
 import pdf from './tools/pdf';
 import snapshot from './tools/snapshot';
 import screenshot from './tools/screenshot';
+import selector from './tools/selector';
 import tabs from './tools/tabs';
 import tracing from './tools/tracing';
 import wait from './tools/wait';
@@ -50,6 +51,7 @@ export const browserTools: Tool<any>[] = [
   ...mouse,
   ...pdf,
   ...screenshot,
+  ...selector,
   ...snapshot,
   ...tabs,
   ...tracing,

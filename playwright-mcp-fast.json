@@ -1,0 +1,36 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "isolated": true,
+    "launchOptions": {
+      "headless": true,
+      "args": [
+        "--disable-blink-features=AutomationControlled",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding"
+      ]
+    },
+    "contextOptions": {
+      "viewport": { "width": 1920, "height": 1080 },
+      "bypassCSP": true,
+      "ignoreHTTPSErrors": true
+    }
+  },
+  "timeouts": {
+    "action": 30000,
+    "navigation": 30000
+  },
+  "imageResponses": "omit",
+  "saveTrace": false,
+  "saveSession": false
+}

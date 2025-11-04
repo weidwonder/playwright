@@ -102,5 +102,8 @@
     "yaml": "2.6.0",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.24.6"
+  },
+  "dependencies": {
+    "playwright-dompath": "^0.0.7"
   }
 }

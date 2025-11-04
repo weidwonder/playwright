@@ -1,0 +1,20 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "launchOptions": {
+      "headless": false,
+      "args": [
+        "--disable-blink-features=AutomationControlled",
+        "--no-first-run"
+      ]
+    },
+    "contextOptions": {
+      "viewport": { "width": 1920, "height": 1080 }
+    }
+  },
+  "timeouts": {
+    "action": 5000,
+    "navigation": 60000
+  },
+  "saveTrace": false
+}
