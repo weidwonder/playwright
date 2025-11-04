@@ -10,7 +10,53 @@ This fork includes the following enhancements to the official Playwright MCP ser
 
 ### ✨ New Features
 
-#### 1. **`browser_get_selector` Tool**
+#### 1. **Enhanced Network Request Monitoring** 🔍
+
+Powerful network request monitoring for AI-powered web scraping and API analysis.
+
+##### `browser_network_requests` (Enhanced)
+- **Added**: Unique request IDs (`req_0`, `req_1`, etc.) for easy reference
+- **Added**: Type filtering parameter
+  - `type: 'xhr'` - Only XHR/Fetch requests (API calls)
+  - `type: 'all'` - All requests including images, CSS, scripts (default)
+- **Usage**:
+  ```javascript
+  // Get only API calls
+  await callTool({
+    name: 'browser_network_requests',
+    arguments: { type: 'xhr' }
+  });
+  // Output: [req_0] [POST] https://api.example.com/login => [200] OK
+  ```
+
+##### `browser_network_request_detail` (New)
+Inspect complete request/response details by request ID.
+
+- **Location**: `packages/playwright/src/mcp/browser/tools/network.ts`
+- **Functionality**:
+  - Request headers, body, and URL
+  - Response headers, body (auto-formatted JSON), and status
+  - Smart size limiting (>10KB bodies are omitted)
+- **Usage**:
+  ```javascript
+  await callTool({
+    name: 'browser_network_request_detail',
+    arguments: { id: 'req_0' }
+  });
+  ```
+- **Use Cases**:
+  - Analyze login flows for web scraping
+  - Debug authentication issues
+  - Reverse engineer API endpoints
+  - Document API structures
+- **Tests**: `tests/mcp/network.spec.ts` (4 passing tests)
+
+**Modified Files:**
+- `packages/playwright/src/mcp/browser/tab.ts` - Request ID tracking
+- `packages/playwright/src/mcp/browser/tools/network.ts` - Enhanced tools
+- See `MCP_NETWORK_FEATURE_GUIDE.md` for detailed documentation
+
+#### 2. **`browser_get_selector` Tool**
 A new MCP tool that converts element references from page snapshots to standard CSS selectors or XPath expressions.
 
 - **Location**: `packages/playwright/src/mcp/browser/tools/selector.ts`
@@ -52,17 +98,26 @@ node packages/playwright/cli.js run-mcp-server --config playwright-mcp-fast.json
 
 ### 📝 Modified Files
 
-**Core Implementation:**
-- `packages/playwright/src/mcp/browser/tools/selector.ts` (new)
-- `packages/playwright/src/mcp/browser/tools.ts` (updated to register new tool)
-- `package.json` (added `playwright-dompath` dependency)
+**Network Monitoring:**
+- `packages/playwright/src/mcp/browser/tab.ts` (request ID tracking)
+- `packages/playwright/src/mcp/browser/tools/network.ts` (enhanced tools + new detail tool)
+- `tests/mcp/network.spec.ts` (updated tests)
+- `MCP_NETWORK_FEATURE_GUIDE.md` (comprehensive guide)
 
-**Tests:**
+**Selector Tool:**
+- `packages/playwright/src/mcp/browser/tools/selector.ts` (new)
+- `packages/playwright/src/mcp/browser/tools.ts` (register new tool)
 - `tests/mcp/selector.spec.ts` (new - 4 tests)
 - `tests/mcp/selector-simple-dynamic.spec.ts` (new - dynamic element test)
 
-**Documentation:**
-- Configuration files with optimization presets
+**Dependencies:**
+- `package.json` (added `playwright-dompath`)
+- `package-lock.json` (dependency updates)
+
+**Configuration & Documentation:**
+- `playwright-mcp-fast.json` (production optimized config)
+- `playwright-mcp-debug.json` (development debug config)
+- `README.md` (this file - fork documentation)
 
 ### 🚀 Quick Start with Modifications
 

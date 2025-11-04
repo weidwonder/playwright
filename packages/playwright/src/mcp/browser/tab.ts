@@ -53,6 +53,8 @@ export class Tab extends EventEmitter<TabEventsInterface> {
   private _consoleMessages: ConsoleMessage[] = [];
   private _recentConsoleMessages: ConsoleMessage[] = [];
   private _requests: Set<playwright.Request> = new Set();
+  private _requestsWithIds: Map<string, playwright.Request> = new Map();
+  private _requestIdCounter = 0;
   private _onPageClose: (tab: Tab) => void;
   private _modalStates: ModalState[] = [];
   private _downloads: { download: playwright.Download, finished: boolean, outputFile: string }[] = [];
@@ -66,7 +68,11 @@ export class Tab extends EventEmitter<TabEventsInterface> {
     this._onPageClose = onPageClose;
     page.on('console', event => this._handleConsoleMessage(messageToConsoleMessage(event)));
     page.on('pageerror', error => this._handleConsoleMessage(pageErrorToConsoleMessage(error)));
-    page.on('request', request => this._requests.add(request));
+    page.on('request', request => {
+      this._requests.add(request);
+      const id = `req_${this._requestIdCounter++}`;
+      this._requestsWithIds.set(id, request);
+    });
     page.on('close', () => this._onClose());
     page.on('filechooser', chooser => {
       this.setModalState({
@@ -105,8 +111,11 @@ export class Tab extends EventEmitter<TabEventsInterface> {
     for (const message of await Tab.collectConsoleMessages(this.page))
       this._handleConsoleMessage(message);
     const requests = await this.page.requests().catch(() => []);
-    for (const request of requests)
+    for (const request of requests) {
       this._requests.add(request);
+      const id = `req_${this._requestIdCounter++}`;
+      this._requestsWithIds.set(id, request);
+    }
   }
 
   modalStates(): ModalState[] {
@@ -150,6 +159,8 @@ export class Tab extends EventEmitter<TabEventsInterface> {
     this._consoleMessages.length = 0;
     this._recentConsoleMessages.length = 0;
     this._requests.clear();
+    this._requestsWithIds.clear();
+    this._requestIdCounter = 0;
   }
 
   private _handleConsoleMessage(message: ConsoleMessage) {
@@ -217,6 +228,15 @@ export class Tab extends EventEmitter<TabEventsInterface> {
   async requests(): Promise<Set<playwright.Request>> {
     await this._initializedPromise;
     return this._requests;
+  }
+
+  async requestsWithIds(): Promise<Map<string, playwright.Request>> {
+    await this._initializedPromise;
+    return this._requestsWithIds;
+  }
+
+  getRequestById(id: string): playwright.Request | undefined {
+    return this._requestsWithIds.get(id);
   }
 
   async captureSnapshot(): Promise<TabSnapshot> {
