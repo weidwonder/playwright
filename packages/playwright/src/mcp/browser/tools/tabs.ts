@@ -27,6 +27,7 @@ const browserTabs = defineTool({
     inputSchema: z.object({
       action: z.enum(['list', 'new', 'close', 'select']).describe('Operation to perform'),
       index: z.number().optional().describe('Tab index, used for close/select. If omitted for close, current tab is closed.'),
+      compress_with_purpose: z.string().optional().describe('Optional purpose for the tab operation. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
     }),
     type: 'action',
   },
@@ -46,6 +47,8 @@ const browserTabs = defineTool({
       case 'close': {
         await context.closeTab(params.index);
         response.setIncludeSnapshot('full');
+        if (params.compress_with_purpose)
+          response.setCompressionPurpose(params.compress_with_purpose);
         return;
       }
       case 'select': {
@@ -53,6 +56,8 @@ const browserTabs = defineTool({
           throw new Error('Tab index is required');
         await context.selectTab(params.index);
         response.setIncludeSnapshot('full');
+        if (params.compress_with_purpose)
+          response.setCompressionPurpose(params.compress_with_purpose);
         return;
       }
     }

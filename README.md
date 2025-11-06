@@ -77,6 +77,58 @@ A new MCP tool that converts element references from page snapshots to standard 
 - **Dependencies**: Uses [`playwright-dompath`](https://github.com/alexferrari88/playwright-dompath) for accurate selector generation
 - **Tests**: `tests/mcp/selector.spec.ts` (4 passing tests)
 
+#### 3. **Browser Output Compression** 🗜️
+Optional intelligent compression of browser outputs to reduce context window usage by 40-70% using Claude Haiku 4.5.
+
+- **Added Parameter**: `compress_with_purpose` (optional) to:
+  - `browser_navigate` - Compress page snapshot after navigation
+  - `browser_snapshot` - Compress current page snapshot
+  - `browser_tabs` - Compress snapshot after tab operations
+- **Setup** (Choose one option):
+
+  **Option 1: OAuth (Recommended)** ⭐
+  ```bash
+  # 1. Install Claude Agent SDK (optional)
+  npm install --save-optional @anthropic-ai/claude-agent-sdk
+
+  # 2. Get OAuth token
+  claude setup-token
+
+  # 3. Set token in environment
+  export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token'
+  ```
+
+  **Option 2: AWS Bedrock**
+  ```bash
+  # 1. Install AWS SDK (optional)
+  npm install --save-optional @aws-sdk/client-bedrock-runtime
+
+  # 2. Set credentials
+  export AWS_BEARER_TOKEN_BEDROCK='your-token'
+  ```
+- **Usage** (⭐ Recommended):
+  ```javascript
+  await callTool({
+    name: 'browser_navigate',
+    arguments: {
+      url: 'https://example.com',
+      compress_with_purpose: '保留网站全部主体内容'  // Preserve all main content
+    }
+  });
+  ```
+- **Key Points**:
+  - 🚀 **Smart threshold**: Content < 4k tokens is returned directly without compression
+  - 🤖 **Model**: Uses Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) for cost-effective compression
+  - ✅ Use **broad purposes** like "保留网站全部主体内容" for best results
+  - ❌ Avoid specific purposes (e.g., "find login") - may filter important content
+  - Automatically removes: ads, cookie banners, tracking scripts, newsletters
+  - Preserves: main content, buttons, forms, element refs, pagination
+  - Graceful fallback: OAuth → Bedrock → Original content
+- **Files**:
+  - `packages/playwright/src/mcp/browser/compression.ts` (compression module)
+  - `packages/playwright/src/mcp/browser/response.ts` (async serialization)
+  - See "Compression Feature" in Modified Files section below for complete file list
+
 ### 📁 Configuration Files
 
 Two pre-configured setups for optimal MCP server performance:
@@ -110,9 +162,20 @@ node packages/playwright/cli.js run-mcp-server --config playwright-mcp-fast.json
 - `tests/mcp/selector.spec.ts` (new - 4 tests)
 - `tests/mcp/selector-simple-dynamic.spec.ts` (new - dynamic element test)
 
+**Compression Feature:**
+- `packages/playwright/src/mcp/browser/compression.ts` (new - OAuth & Bedrock integration)
+- `packages/playwright/src/mcp/browser/compression.example.ts` (new - usage example)
+- `packages/playwright/src/mcp/browser/response.ts` (modified - async serialization)
+- `packages/playwright/src/mcp/browser/browserServerBackend.ts` (modified - await serialize)
+- `packages/playwright/src/mcp/browser/tools/navigate.ts` (modified - add compress parameter)
+- `packages/playwright/src/mcp/browser/tools/snapshot.ts` (modified - add compress parameter)
+- `packages/playwright/src/mcp/browser/tools/tabs.ts` (modified - add compress parameter)
+
 **Dependencies:**
 - `package.json` (added `playwright-dompath`)
 - `package-lock.json` (dependency updates)
+- Optional: `@anthropic-ai/claude-agent-sdk` (for OAuth compression, recommended)
+- Optional: `@aws-sdk/client-bedrock-runtime` (for Bedrock compression)
 
 **Configuration & Documentation:**
 - `playwright-mcp-fast.json` (production optimized config)

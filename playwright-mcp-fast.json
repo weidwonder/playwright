@@ -17,7 +17,8 @@
         "--mute-audio",
         "--no-first-run",
         "--disable-backgrounding-occluded-windows",
-        "--disable-renderer-backgrounding"
+        "--disable-renderer-backgrounding",
+	"--shared-browser-context"
       ]
     },
     "contextOptions": {

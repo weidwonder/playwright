@@ -16,6 +16,7 @@
 
 import { debug } from 'playwright-core/lib/utilsBundle';
 import { renderModalStates } from './tab';
+import { compress } from './compression';
 
 import type { Tab, TabSnapshot } from './tab';
 import type { CallToolResult, ImageContent, TextContent } from '@modelcontextprotocol/sdk/types.js';
@@ -31,6 +32,7 @@ export class Response {
   private _includeSnapshot: 'none' | 'full' | 'incremental' = 'none';
   private _includeTabs = false;
   private _tabSnapshot: TabSnapshot | undefined;
+  private _compressionPurpose: string | undefined;
 
   readonly toolName: string;
   readonly toolArgs: Record<string, any>;
@@ -83,6 +85,10 @@ export class Response {
     this._includeTabs = true;
   }
 
+  setCompressionPurpose(purpose: string) {
+    this._compressionPurpose = purpose;
+  }
+
   async finish() {
     // All the async snapshotting post-action is happening here.
     // Everything below should race against modal states.
@@ -102,11 +108,17 @@ export class Response {
   }
 
   logEnd() {
-    if (requestDebug.enabled)
-      requestDebug(this.serialize({ omitSnapshot: true, omitBlobs: true }));
+    if (requestDebug.enabled) {
+      // Use synchronous version for logging (without compression)
+      this.serialize({ omitSnapshot: true, omitBlobs: true }).then(result => {
+        requestDebug(result);
+      }).catch(() => {
+        // Ignore errors in logging
+      });
+    }
   }
 
-  serialize(options: { omitSnapshot?: boolean, omitBlobs?: boolean } = {}): { content: (TextContent | ImageContent)[], isError?: boolean } {
+  async serialize(options: { omitSnapshot?: boolean, omitBlobs?: boolean } = {}): Promise<{ content: (TextContent | ImageContent)[], isError?: boolean }> {
     const response: string[] = [];
 
     // Start with command result.
@@ -139,9 +151,23 @@ ${this._code.join('\n')}
       response.push('');
     }
 
+    let textContent = response.join('\n');
+
+    // Apply compression if requested
+    if (this._compressionPurpose && !options.omitSnapshot) {
+      try {
+        textContent = await compress({
+          purpose: this._compressionPurpose,
+          content: textContent,
+        });
+      } catch (error: any) {
+        requestDebug('Compression failed, using original content:', error?.message || String(error));
+      }
+    }
+
     // Main response part
     const content: (TextContent | ImageContent)[] = [
-      { type: 'text', text: response.join('\n') },
+      { type: 'text', text: textContent },
     ];
 
     // Image attachments.

@@ -24,13 +24,18 @@ const snapshot = defineTool({
     name: 'browser_snapshot',
     title: 'Page snapshot',
     description: 'Capture accessibility snapshot of the current page, this is better than screenshot',
-    inputSchema: z.object({}),
+    inputSchema: z.object({
+      compress_with_purpose: z.string().optional().describe('Optional purpose for capturing this snapshot. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
+    }),
     type: 'readOnly',
   },
 
   handle: async (context, params, response) => {
     await context.ensureTab();
     response.setIncludeSnapshot('full');
+
+    if (params.compress_with_purpose)
+      response.setCompressionPurpose(params.compress_with_purpose);
   },
 });
 

@@ -5,7 +5,8 @@
       "headless": false,
       "args": [
         "--disable-blink-features=AutomationControlled",
-        "--no-first-run"
+        "--no-first-run",
+	"--shared-browser-context"
       ]
     },
     "contextOptions": {

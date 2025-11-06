@@ -73,7 +73,7 @@ export class BrowserServerBackend implements ServerBackend {
       context.setRunningTool(undefined);
     }
     response.logEnd();
-    return response.serialize();
+    return await response.serialize();
   }
 
   serverClosed() {

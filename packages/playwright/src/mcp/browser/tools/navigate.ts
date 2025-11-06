@@ -26,6 +26,7 @@ const navigate = defineTool({
     description: 'Navigate to a URL',
     inputSchema: z.object({
       url: z.string().describe('The URL to navigate to'),
+      compress_with_purpose: z.string().optional().describe('Optional purpose for visiting this page. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
     }),
     type: 'action',
   },
@@ -36,6 +37,9 @@ const navigate = defineTool({
 
     response.setIncludeSnapshot();
     response.addCode(`await page.goto('${params.url}');`);
+
+    if (params.compress_with_purpose)
+      response.setCompressionPurpose(params.compress_with_purpose);
   },
 });
 
