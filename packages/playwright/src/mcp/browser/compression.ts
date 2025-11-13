@@ -143,33 +143,39 @@ export async function compressWithOAuth(options: CompressionOptions): Promise<st
     compressionDebug('OAuth token found, length:', oauthToken.length);
 
     // Dynamically import Claude Agent SDK to avoid bundling issues
-    const { Messages } = await import('@anthropic-ai/claude-agent-sdk');
+    const sdk = await import('@anthropic-ai/claude-agent-sdk');
+    const query = sdk.query;
+
+    if (!query) {
+      compressionDebug('Claude Agent SDK query function not available, skipping compression');
+      return content;
+    }
 
     const userMessage = purpose
-      ? `Purpose: ${purpose}\n\nContent to compress:\n\n${content}`
-      : `Content to compress:\n\n${content}`;
+      ? `${COMPRESSION_PROMPT}\n\nPurpose: ${purpose}\n\nContent to compress:\n\n${content}`
+      : `${COMPRESSION_PROMPT}\n\nContent to compress:\n\n${content}`;
 
     compressionDebug('Compressing content with Claude Agent SDK (OAuth), purpose:', purpose || 'none');
 
-    // Create message using Claude Agent SDK with Haiku 4.5
-    const response = await Messages.create({
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: COMPRESSION_PROMPT },
-            { type: 'text', text: userMessage },
-          ],
-        },
-      ],
-      max_tokens: 10000,
-      model: 'claude-haiku-4-5-20251001',
+    // Use Claude Agent SDK to make the API call with OAuth token
+    const response = query({
+      prompt: userMessage,
     });
 
-    if (response.content?.[0]?.type === 'text') {
-      const compressed = response.content[0].text || '';
-      compressionDebug('Compression complete. Original length:', content.length, 'Compressed length:', compressed.length);
-      return compressed;
+    let compressedResult = '';
+    for await (const message of response) {
+      // Collect the assistant's response
+      if (message.type === 'assistant') {
+        if (message.message.content?.[0]?.type === 'text') {
+          compressedResult = message.message.content[0].text || '';
+          break;
+        }
+      }
+    }
+
+    if (compressedResult) {
+      compressionDebug('Compression complete. Original length:', content.length, 'Compressed length:', compressedResult.length);
+      return compressedResult;
     }
 
     compressionDebug('No valid response from Claude Agent SDK, returning original content');

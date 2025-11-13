@@ -104,6 +104,7 @@
     "zod-to-json-schema": "^3.24.6"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
     "playwright-dompath": "^0.0.7"
   },
   "optionalDependencies": {

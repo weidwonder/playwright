@@ -5,8 +5,7 @@
       "headless": false,
       "args": [
         "--disable-blink-features=AutomationControlled",
-        "--no-first-run",
-	"--shared-browser-context"
+        "--no-first-run"
       ]
     },
     "contextOptions": {
@@ -17,5 +16,6 @@
     "action": 5000,
     "navigation": 60000
   },
-  "saveTrace": false
+  "saveTrace": false,
+  "sharedBrowserContext": true
 }

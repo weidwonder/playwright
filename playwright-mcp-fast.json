@@ -1,7 +1,6 @@
 {
   "browser": {
     "browserName": "chromium",
-    "isolated": true,
     "launchOptions": {
       "headless": true,
       "args": [
@@ -17,8 +16,7 @@
         "--mute-audio",
         "--no-first-run",
         "--disable-backgrounding-occluded-windows",
-        "--disable-renderer-backgrounding",
-	"--shared-browser-context"
+        "--disable-renderer-backgrounding"
       ]
     },
     "contextOptions": {
@@ -33,5 +31,6 @@
   },
   "imageResponses": "omit",
   "saveTrace": false,
-  "saveSession": false
+  "saveSession": false,
+  "sharedBrowserContext": true
 }
