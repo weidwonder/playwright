@@ -36,3 +36,23 @@ test-results
 .eslintcache
 playwright.env
 /firefox/
+
+# Temporary analysis and documentation files
+ANALYSIS_*.txt
+ANALYSIS_*.md
+COMPRESSION_*.md
+MCP_*.md
+KEY_CODE_SNIPPETS.md
+SNAPSHOT_CONTROL_SUMMARY.md
+
+# Test files in root directory
+/test-*.js
+
+# Log files
+*.log
+
+# Temporary directories
+.playwright-mcp/
+
+# Example files
+*.example.ts
