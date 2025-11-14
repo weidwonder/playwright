@@ -26,12 +26,18 @@ export const uploadFile = defineTabTool({
     description: 'Upload one or multiple files',
     inputSchema: z.object({
       paths: z.array(z.string()).optional().describe('The absolute paths to the files to upload. Can be single file or multiple files. If omitted, file chooser is cancelled.'),
+      return_snapshot: z.boolean().optional().default(false).describe('Whether to return page snapshot after the action. Default: false. Use browser_snapshot to check results when needed.'),
+      compress_with_purpose: z.string().optional().describe('Optional purpose for compressing the snapshot. Only effective when return_snapshot is true. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
     }),
     type: 'action',
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    if (params.return_snapshot) {
+      response.setIncludeSnapshot();
+      if (params.compress_with_purpose)
+        response.setCompressionPurpose(params.compress_with_purpose);
+    }
 
     const modalState = tab.modalStates().find(state => state.type === 'fileChooser');
     if (!modalState)

@@ -27,12 +27,19 @@ const pressKey = defineTabTool({
     description: 'Press a key on the keyboard',
     inputSchema: z.object({
       key: z.string().describe('Name of the key to press or a character to generate, such as `ArrowLeft` or `a`'),
+      return_snapshot: z.boolean().optional().default(false).describe('Whether to return page snapshot after the action. Default: false. Use browser_snapshot to check results when needed.'),
+      compress_with_purpose: z.string().optional().describe('Optional purpose for compressing the snapshot. Only effective when return_snapshot is true. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
     }),
     type: 'input',
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    if (params.return_snapshot) {
+      response.setIncludeSnapshot();
+      if (params.compress_with_purpose)
+        response.setCompressionPurpose(params.compress_with_purpose);
+    }
+
     response.addCode(`// Press ${params.key}`);
     response.addCode(`await page.keyboard.press('${params.key}');`);
 
@@ -46,6 +53,8 @@ const typeSchema = elementSchema.extend({
   text: z.string().describe('Text to type into the element'),
   submit: z.boolean().optional().describe('Whether to submit entered text (press Enter after)'),
   slowly: z.boolean().optional().describe('Whether to type one character at a time. Useful for triggering key handlers in the page. By default entire text is filled in at once.'),
+  return_snapshot: z.boolean().optional().default(false).describe('Whether to return page snapshot after the action. Default: false. Use browser_snapshot to check results when needed.'),
+  compress_with_purpose: z.string().optional().describe('Optional purpose for compressing the snapshot. Only effective when return_snapshot is true. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
 });
 
 const type = defineTabTool({
@@ -59,12 +68,17 @@ const type = defineTabTool({
   },
 
   handle: async (tab, params, response) => {
+    if (params.return_snapshot) {
+      response.setIncludeSnapshot();
+      if (params.compress_with_purpose)
+        response.setCompressionPurpose(params.compress_with_purpose);
+    }
+
     const { locator, resolved } = await tab.refLocator(params);
     const secret = tab.context.lookupSecret(params.text);
 
     await tab.waitForCompletion(async () => {
       if (params.slowly) {
-        response.setIncludeSnapshot();
         response.addCode(`await page.${resolved}.pressSequentially(${secret.code});`);
         await locator.pressSequentially(secret.value);
       } else {
@@ -73,7 +87,6 @@ const type = defineTabTool({
       }
 
       if (params.submit) {
-        response.setIncludeSnapshot();
         response.addCode(`await page.${resolved}.press('Enter');`);
         await locator.press('Enter');
       }

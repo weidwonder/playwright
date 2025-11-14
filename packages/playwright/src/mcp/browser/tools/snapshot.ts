@@ -48,6 +48,8 @@ const clickSchema = elementSchema.extend({
   doubleClick: z.boolean().optional().describe('Whether to perform a double click instead of a single click'),
   button: z.enum(['left', 'right', 'middle']).optional().describe('Button to click, defaults to left'),
   modifiers: z.array(z.enum(['Alt', 'Control', 'ControlOrMeta', 'Meta', 'Shift'])).optional().describe('Modifier keys to press'),
+  return_snapshot: z.boolean().optional().default(false).describe('Whether to return page snapshot after the action. Default: false. Use browser_snapshot to check results when needed.'),
+  compress_with_purpose: z.string().optional().describe('Optional purpose for compressing the snapshot. Only effective when return_snapshot is true. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
 });
 
 const click = defineTabTool({
@@ -61,7 +63,11 @@ const click = defineTabTool({
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    if (params.return_snapshot) {
+      response.setIncludeSnapshot();
+      if (params.compress_with_purpose)
+        response.setCompressionPurpose(params.compress_with_purpose);
+    }
 
     const { locator, resolved } = await tab.refLocator(params);
     const options = {
@@ -96,12 +102,18 @@ const drag = defineTabTool({
       startRef: z.string().describe('Exact source element reference from the page snapshot'),
       endElement: z.string().describe('Human-readable target element description used to obtain the permission to interact with the element'),
       endRef: z.string().describe('Exact target element reference from the page snapshot'),
+      return_snapshot: z.boolean().optional().default(false).describe('Whether to return page snapshot after the action. Default: false. Use browser_snapshot to check results when needed.'),
+      compress_with_purpose: z.string().optional().describe('Optional purpose for compressing the snapshot. Only effective when return_snapshot is true. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
     }),
     type: 'input',
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    if (params.return_snapshot) {
+      response.setIncludeSnapshot();
+      if (params.compress_with_purpose)
+        response.setCompressionPurpose(params.compress_with_purpose);
+    }
 
     const [start, end] = await tab.refLocators([
       { ref: params.startRef, element: params.startElement },
@@ -122,12 +134,19 @@ const hover = defineTabTool({
     name: 'browser_hover',
     title: 'Hover mouse',
     description: 'Hover over element on page',
-    inputSchema: elementSchema,
+    inputSchema: elementSchema.extend({
+      return_snapshot: z.boolean().optional().default(false).describe('Whether to return page snapshot after the action. Default: false. Use browser_snapshot to check results when needed.'),
+      compress_with_purpose: z.string().optional().describe('Optional purpose for compressing the snapshot. Only effective when return_snapshot is true. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
+    }),
     type: 'input',
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    if (params.return_snapshot) {
+      response.setIncludeSnapshot();
+      if (params.compress_with_purpose)
+        response.setCompressionPurpose(params.compress_with_purpose);
+    }
 
     const { locator, resolved } = await tab.refLocator(params);
     response.addCode(`await page.${resolved}.hover();`);
@@ -140,6 +159,8 @@ const hover = defineTabTool({
 
 const selectOptionSchema = elementSchema.extend({
   values: z.array(z.string()).describe('Array of values to select in the dropdown. This can be a single value or multiple values.'),
+  return_snapshot: z.boolean().optional().default(false).describe('Whether to return page snapshot after the action. Default: false. Use browser_snapshot to check results when needed.'),
+  compress_with_purpose: z.string().optional().describe('Optional purpose for compressing the snapshot. Only effective when return_snapshot is true. If provided, the response will be compressed using Claude AI to reduce context length while preserving critical information. RECOMMENDED: Generally enable this option with a broad purpose like "保留网站全部主体内容" (preserve all main content) to achieve compression benefits while maintaining comprehensive page visibility. Avoid overly specific purposes as they may filter out important content.'),
 });
 
 const selectOption = defineTabTool({
@@ -153,7 +174,11 @@ const selectOption = defineTabTool({
   },
 
   handle: async (tab, params, response) => {
-    response.setIncludeSnapshot();
+    if (params.return_snapshot) {
+      response.setIncludeSnapshot();
+      if (params.compress_with_purpose)
+        response.setCompressionPurpose(params.compress_with_purpose);
+    }
 
     const { locator, resolved } = await tab.refLocator(params);
     response.addCode(`await page.${resolved}.selectOption(${javascript.formatObject(params.values)});`);
