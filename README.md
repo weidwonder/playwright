@@ -112,14 +112,14 @@ Optional intelligent compression of browser outputs to reduce context window usa
     name: 'browser_navigate',
     arguments: {
       url: 'https://example.com',
-      compress_with_purpose: '保留网站全部主体内容'  // Preserve all main content
+      compress_with_purpose: 'Preserve all main content'
     }
   });
   ```
 - **Key Points**:
   - 🚀 **Smart threshold**: Content < 4k tokens is returned directly without compression
   - 🤖 **Model**: Uses Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) for cost-effective compression
-  - ✅ Use **broad purposes** like "保留网站全部主体内容" for best results
+  - ✅ Use **broad purposes** like "Preserve all main content" for best results
   - ❌ Avoid specific purposes (e.g., "find login") - may filter important content
   - Automatically removes: ads, cookie banners, tracking scripts, newsletters
   - Preserves: main content, buttons, forms, element refs, pagination
@@ -159,7 +159,7 @@ Granular control over when page snapshots are returned after browser interaction
   // Final check with compressed snapshot
   await callTool({
     name: 'browser_snapshot',
-    arguments: { compress_with_purpose: '保留网站全部主体内容' }
+    arguments: { compress_with_purpose: 'Preserve all main content' }
   });
 
   // Or single action with compressed snapshot
@@ -169,7 +169,7 @@ Granular control over when page snapshots are returned after browser interaction
       element: 'submit',
       ref: 'e12',
       return_snapshot: true,
-      compress_with_purpose: '保留网站全部主体内容'
+      compress_with_purpose: 'Preserve all main content'
     }
   });
   ```
