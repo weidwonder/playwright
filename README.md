@@ -129,6 +129,59 @@ Optional intelligent compression of browser outputs to reduce context window usa
   - `packages/playwright/src/mcp/browser/response.ts` (async serialization)
   - See "Compression Feature" in Modified Files section below for complete file list
 
+#### 4. **Snapshot Return Control** 📸
+Granular control over when page snapshots are returned after browser interactions to minimize token usage.
+
+- **Added Parameters** to all interaction tools:
+  - `return_snapshot` (boolean, optional, default: `false`) - Control whether to return page snapshot
+  - `compress_with_purpose` (string, optional) - Compression purpose (only when `return_snapshot=true`)
+- **Affected Tools** (12 total):
+  - `browser_click`, `browser_hover`, `browser_drag`, `browser_select_option`
+  - `browser_mouse_click_xy`, `browser_mouse_drag_xy`
+  - `browser_press_key`, `browser_type`
+  - `browser_wait_for`, `browser_evaluate`, `browser_file_upload`, `browser_handle_dialog`
+- **Benefits**:
+  - ⚡ **Token Savings**: Default behavior (`return_snapshot: false`) omits snapshots, saving 40-70% tokens
+  - 🎯 **Batch Operations**: Perform multiple actions without snapshot overhead
+  - 🗜️ **Optional Compression**: When snapshots are needed, compress them on-demand
+- **Usage**:
+  ```javascript
+  // Batch operations without snapshots
+  await callTool({
+    name: 'browser_click',
+    arguments: { element: 'button', ref: 'e5', return_snapshot: false }
+  });
+  await callTool({
+    name: 'browser_type',
+    arguments: { element: 'input', ref: 'e8', text: 'hello', return_snapshot: false }
+  });
+
+  // Final check with compressed snapshot
+  await callTool({
+    name: 'browser_snapshot',
+    arguments: { compress_with_purpose: '保留网站全部主体内容' }
+  });
+
+  // Or single action with compressed snapshot
+  await callTool({
+    name: 'browser_click',
+    arguments: {
+      element: 'submit',
+      ref: 'e12',
+      return_snapshot: true,
+      compress_with_purpose: '保留网站全部主体内容'
+    }
+  });
+  ```
+- **Files**: See "Snapshot Control" in Modified Files section below
+
+### ⚠️ Important Limitations
+
+**Single Connection Only**: This MCP server does **not** support multiple concurrent connections. Only one AI agent can connect to the MCP server at a time. If you need multiple agents to access browser automation:
+- Use separate MCP server instances (different ports/processes)
+- Implement connection pooling/queuing in your application
+- Use the official Playwright library directly for multi-agent scenarios
+
 ### 📁 Configuration Files
 
 Two pre-configured setups for optimal MCP server performance:
@@ -177,10 +230,20 @@ node packages/playwright/cli.js run-mcp-server --config playwright-mcp-fast.json
 - Optional: `@anthropic-ai/claude-agent-sdk` (for OAuth compression, recommended)
 - Optional: `@aws-sdk/client-bedrock-runtime` (for Bedrock compression)
 
+**Snapshot Control:**
+- `packages/playwright/src/mcp/browser/tools/snapshot.ts` (click, hover, drag, select_option)
+- `packages/playwright/src/mcp/browser/tools/mouse.ts` (mouse_click_xy, mouse_drag_xy)
+- `packages/playwright/src/mcp/browser/tools/keyboard.ts` (press_key, type)
+- `packages/playwright/src/mcp/browser/tools/wait.ts` (wait_for)
+- `packages/playwright/src/mcp/browser/tools/evaluate.ts` (evaluate)
+- `packages/playwright/src/mcp/browser/tools/files.ts` (file_upload)
+- `packages/playwright/src/mcp/browser/tools/dialogs.ts` (handle_dialog)
+
 **Configuration & Documentation:**
 - `playwright-mcp-fast.json` (production optimized config)
 - `playwright-mcp-debug.json` (development debug config)
 - `README.md` (this file - fork documentation)
+- `SNAPSHOT_CONTROL_SUMMARY.md` (snapshot control feature documentation)
 
 ### 🚀 Quick Start with Modifications
 
